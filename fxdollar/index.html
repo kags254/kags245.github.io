@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Robot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        #container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        #log {
+            height: 200px;
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Trading Robot</h1>
+        <p>WebSocket Status: <span id="wsStatus">Disconnected</span></p>
+        <button onclick="connectWebSocket()">Connect WebSocket</button>
+        <button onclick="disconnectWebSocket()">Disconnect WebSocket</button>
+
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" placeholder="Enter API Key">
+
+        <label for="apiSecret">API Secret:</label>
+        <input type="password" id="apiSecret" placeholder="Enter API Secret">
+
+        <label for="numTrades">Number of Trades:</label>
+        <input type="number" id="numTrades" min="1" value="1">
+
+        <label for="stake">Stake:</label>
+        <input type="number" id="stake" min="1" value="10">
+
+        <label for="numTicks">Number of Ticks:</label>
+        <input type="number" id="numTicks" min="1" value="5">
+
+        <div id="log"></div>
+
+        <script>
+            let socket;
+
+            function writeToLog(message) {
+                const logElement = document.getElementById('log');
+                logElement.innerHTML += `${message}<br>`;
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+
+            function connectWebSocket() {
+                const apiKey = document.getElementById('apiKey').value;
+                const apiSecret = document.getElementById('apiSecret').value;
+
+                if (!apiKey || !apiSecret) {
+                    writeToLog('API Key and API Secret are required.');
+                    return;
+                }
+
+                socket = new WebSocket('https://app.deriv.com'); // Replace with your WebSocket endpoint
+
+                socket.onopen = function (event) {
+                    document.getElementById('wsStatus').innerText = 'Connected';
+                    writeToLog('WebSocket Connected');
+
+                    // Authenticate with the API
+                    socket.send(JSON.stringify({
+                        type: 'auth',
+                        apiKey,
+                        apiSecret,
+                    }));
+                };
+
+                socket.onmessage = function (event) {
+                    const data = JSON.parse(event.data);
+
+                    // Implement your trading strategy here
+                    if (data.marketData % 2 === 0) {
+                        // Open a trade
+                        writeToLog('Trade opened on even number');
+                    }
+                };
+
+                socket.onclose = function (event) {
+                    document.getElementById('wsStatus').innerText = 'Disconnected';
+                    writeToLog('WebSocket Disconnected');
+                };
+            }
+
+            function disconnectWebSocket() {
+                if (socket) {
+                    socket.close();
+                }
+              
+}
+            }
+        </script>
+    </div>
+</body>
+</html>
